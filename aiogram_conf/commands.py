@@ -9,12 +9,12 @@ async def set_commands(bot: Bot):
             description='Login in ok.ru'
         ),
         BotCommand(
-            command='write',
-            description='send message in ok'
+            command='bio',
+            description='chech profile bio'
         ),
         BotCommand(
             command='post',
-            description='my post'
+            description='my newest post'
         )
     ]
 

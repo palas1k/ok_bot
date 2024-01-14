@@ -40,7 +40,7 @@ class Auth:
             raise ex
 
     async def get(self, url: str):
-        conn = self.session
+        conn = self.start_session()
         r = await conn.get(url)
         return r
 
@@ -61,6 +61,7 @@ class OkParser:
         url: str = 'https://ok.ru/profile/587077083456/statuses'
         try:
             r = await self.auth_session.get(url)
+            r = await r.text()
             soup = BeautifulSoup(r, "html.parser")
             answer = soup.find("div", {"class": "media-text_cnt_tx"}).text
             return answer
@@ -68,3 +69,21 @@ class OkParser:
             raise ex
         finally:
             await self.auth_session.session_close()
+
+    @classmethod
+    async def get_bio(cls, user_id: int):
+        url: str = f"https://ok.ru/profile/{user_id}/about"
+        try:
+            r = await cls.auth_session.session.get(url)
+            r = await r.text()
+            await cls.auth_session.session_close()
+            soup = BeautifulSoup(r, "html.parser")
+            answer = soup.find("div", {"class": "user-profile_list"}).get_text(separator=' ')
+            return answer
+        except Exception as ex:
+            raise ex
+
+OP =OkParser()
+a = Auth()
+asyncio.run(a.perform_login('9393968088', 'liserg09vip'))
+print(asyncio.run(OP.get_bio(574056415324)))
