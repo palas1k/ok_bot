@@ -17,7 +17,7 @@ class Auth:
     async def session_close(self):
         if self.session is not None:
             await self.session.close()
-            self.session = None
+        self.session = None
 
     async def perform_login(self, login, password):
         data = {
@@ -34,21 +34,29 @@ class Auth:
         url = "https://ok.ru/dk?cmd=AnonymLogin&st.cmd=anonymMain"
         try:
             conn = self.start_session()
-            r = await conn.post(url=url, data=data)
+            # r = await conn.post(url=url, data=data)
+            r = await self.session.post(url=url, data=data)
             return r
         except Exception as ex:
             raise ex
 
     async def get(self, url: str):
-        conn = self.start_session()
+        conn = self.session
         r = await conn.get(url)
-        return r
+        return await r.text()
 
 
 class OkParser:
 
     def __init__(self):
         self.auth_session = Auth()
+
+    async def get_url(self, url: str):
+        r = self.auth_session.start_session()
+        res = await r.get(url)
+        r = await res.text()
+        await self.auth_session.session_close()
+        return r
 
     async def get_data(self, login: str, password: str, url: str):
         obj = await self.auth_session.perform_login(login, password)
@@ -61,7 +69,6 @@ class OkParser:
         url: str = 'https://ok.ru/profile/587077083456/statuses'
         try:
             r = await self.auth_session.get(url)
-            r = await r.text()
             soup = BeautifulSoup(r, "html.parser")
             answer = soup.find("div", {"class": "media-text_cnt_tx"}).text
             return answer
@@ -70,20 +77,18 @@ class OkParser:
         finally:
             await self.auth_session.session_close()
 
-    @classmethod
-    async def get_bio(cls, user_id: int):
+    async def get_bio(self, user_id: int):
         url: str = f"https://ok.ru/profile/{user_id}/about"
-        try:
-            r = await cls.auth_session.session.get(url)
-            r = await r.text()
-            await cls.auth_session.session_close()
-            soup = BeautifulSoup(r, "html.parser")
-            answer = soup.find("div", {"class": "user-profile_list"}).get_text(separator=' ')
-            return answer
-        except Exception as ex:
-            raise ex
+        r = await self.get_url(url)
+        text = ''
+        soup = BeautifulSoup(r, "html.parser")
+        text += soup.find(class_="compact-profile_a").text
+        text += soup.find("div", {"class": "user-profile_list"}).get_text(separator='')
+        print(text)
+        return text
 
-OP =OkParser()
-a = Auth()
-asyncio.run(a.perform_login('9393968088', 'liserg09vip'))
-print(asyncio.run(OP.get_bio(574056415324)))
+
+# op = OkParser()
+# asyncio.run(op.auth_session.perform_login('9393968088', 'liserg09vip'))
+# asyncio.run(op.get_bio(574056415324))
+

@@ -32,6 +32,7 @@ async def check_last_post(message: Message) -> str:
 async def perform_login(login: str, password: str) -> bool:
     r_ = Auth()
     res = await r_.perform_login(login, password)
+    print(f"RESULT1 {r_.session}")
     if str(res.real_url) == "https://ok.ru/?just-logged-in=true":
         return True
     else:

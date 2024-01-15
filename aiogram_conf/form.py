@@ -45,12 +45,13 @@ async def get_user_id(message: Message, state: FSMContext):
 
 
 async def get_info(message: Message, state: FSMContext):
-    OP = OkParser()
+    op = OkParser()
     a = Auth()
     try:
         id = int(message.text)
+        print(f'RESULT {a.session}')
         if a.session:
-            r = await OP.get_bio(id)
+            r = await op.get_bio(id)
             await get_or_create_user_in_counter(id)
             await message.answer(r)
         else:
