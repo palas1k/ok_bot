@@ -60,10 +60,11 @@ class OkParser:
 
     async def get_data(self, login: str, password: str, url: str):
         obj = await self.auth_session.perform_login(login, password)
-        obj = await self.auth_session.get(url)
-        obj = await obj.text()
+        obj = await self.auth_session.session.get(url)
+        r = await obj.text()
         await self.auth_session.session_close()
-        return obj
+        print(r)
+        return r
 
     async def check_post(self) -> str:
         url: str = 'https://ok.ru/profile/587077083456/statuses'
@@ -79,7 +80,7 @@ class OkParser:
 
     async def get_bio(self, user_id: int):
         url: str = f"https://ok.ru/profile/{user_id}/about"
-        r = await self.get_url(url)
+        r = await self.auth_session.session.get(url)
         text = ''
         soup = BeautifulSoup(r, "html.parser")
         text += soup.find(class_="compact-profile_a").text
@@ -88,7 +89,7 @@ class OkParser:
         return text
 
 
-# op = OkParser()
-# asyncio.run(op.auth_session.perform_login('9393968088', 'liserg09vip'))
-# asyncio.run(op.get_bio(574056415324))
+op = OkParser()
+asyncio.run(op.auth_session.perform_login('9393968088', 'liserg09vip'))
+asyncio.run(op.auth_session.session.get(574056415324))
 
